@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Log in{% endblock %}
+
+{% block content %}
+<section class="auth-card">
+    <div class="auth-heading">
+        <p class="eyebrow">Welcome back</p>
+        <h1>Log in to your account</h1>
+        <p class="muted">Enter your details to continue.</p>
+    </div>
+
+    <form method="post" class="auth-form">
+        {% csrf_token %}
+        {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+
+        {{ form.non_field_errors }}
+        {% for field in form %}
+            <div class="form-field">
+                {{ field.label_tag }}
+                {{ field }}
+                {% for error in field.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+            </div>
+        {% endfor %}
+
+        <button type="submit" class="primary-button">Log in</button>
+    </form>
+
+    <p class="auth-footer">Don’t have an account? <a href="{% url 'accounts:register' %}">Create one</a></p>
+</section>
+{% endblock %}

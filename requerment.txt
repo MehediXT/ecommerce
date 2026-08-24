@@ -1,0 +1,7 @@
+asgiref==3.12.1
+Django==6.1
+django-filter==26.1
+pillow==12.3.0
+psycopg==3.3.4
+psycopg-binary==3.3.4
+sqlparse==0.6.0

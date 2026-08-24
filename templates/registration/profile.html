@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+<section class="auth-card profile-card">
+    <div class="auth-heading">
+        <p class="eyebrow">Your account</p>
+        <h1>Hello, {{ user.get_username }}</h1>
+        <p class="muted">You are signed in as {{ user.email|default:"your account" }}.</p>
+    </div>
+    <form method="post" action="{% url 'accounts:logout' %}">
+        {% csrf_token %}
+        <button type="submit" class="primary-button">Log out</button>
+    </form>
+</section>
+{% endblock %}
