@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Payment successful{% endblock %}
+
+{% block content %}
+<div class="store-page">
+    <div class="empty-state">
+        <span class="empty-icon">✓</span>
+        <h1>Thanks for your order</h1>
+        <p>Your payment was completed successfully.</p>
+        <a class="nav-button nav-button-solid" href="{% url 'products:home' %}">Continue shopping</a>
+    </div>
+</div>
+{% endblock %}

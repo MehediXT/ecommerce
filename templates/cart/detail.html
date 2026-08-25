@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Your cart{% endblock %}
+
+{% block content %}
+<div class="store-page cart-page">
+    <div class="section-heading cart-heading">
+        <div>
+            <p class="eyebrow">Ready when you are</p>
+            <h1>Your cart</h1>
+        </div>
+        <a class="text-link" href="{% url 'products:home' %}">Continue shopping <span>→</span></a>
+    </div>
+
+    {% if items %}
+        <div class="cart-layout">
+            <section class="cart-items">
+                {% for item in items %}
+                    <article class="cart-item">
+                        <div class="cart-item-image">
+                            {% with item_image=item.variant.product.images.first %}
+                                {% if item_image %}
+                                    <img src="{{ item_image.image.url }}" alt="{{ item.variant.product.product_name }}">
+                                {% else %}
+                                    <span>✦</span>
+                                {% endif %}
+                            {% endwith %}
+                        </div>
+                        <div class="cart-item-copy">
+                            <p class="cart-item-category">{{ item.variant.product.product_category.category_name }}</p>
+                            <h2>{{ item.variant.product.product_name }}</h2>
+                            <p class="cart-item-variant">Option: {{ item.variant.color }} · Qty: {{ item.quantity }}</p>
+                            <form method="post" action="{% url 'cart:remove' item.id %}">
+                                {% csrf_token %}
+                                <button class="remove-button" type="submit">Remove</button>
+                            </form>
+                        </div>
+                        <strong class="cart-item-price">${{ item.subtotal }}</strong>
+                    </article>
+                {% endfor %}
+            </section>
+
+            <aside class="cart-summary">
+                <p class="eyebrow">Order summary</p>
+                <div class="summary-row"><span>Subtotal</span><strong>${{ cart_total }}</strong></div>
+                <div class="summary-row"><span>Shipping</span><span>Calculated at checkout</span></div>
+                <div class="summary-total"><span>Total</span><strong>${{ cart_total }}</strong></div>
+                <form method="post" action="{% url 'cart:checkout' %}">
+                    {% csrf_token %}
+                    <button class="checkout-button" type="submit">Checkout <span>→</span></button>
+                </form>
+                <p class="checkout-note">You’ll be redirected to Stripe’s secure checkout.</p>
+            </aside>
+        </div>
+    {% else %}
+        <div class="empty-state cart-empty">
+            <span class="empty-icon">♡</span>
+            <h3>Your cart is empty</h3>
+            <p>Find something you love and it will appear here.</p>
+            <a class="nav-button nav-button-solid" href="{% url 'products:home' %}">Start shopping</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

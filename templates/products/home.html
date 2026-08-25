@@ -84,7 +84,7 @@
         {% if products %}
             <div class="product-grid">
                 {% for product in products %}
-                    <article class="product-card">
+                    <a class="product-card" href="{% url 'products:detail' product.slug %}">
                         <div class="product-image-wrap">
                             {% with product_image=product.images.first %}
                                 {% if product_image %}
@@ -102,10 +102,10 @@
                             </div>
                             <div class="product-footer">
                                 <strong class="product-price">${{ product.price }}</strong>
-                                <button class="add-button" type="button" aria-label="Add {{ product.product_name }} to cart">+</button>
+                                <span class="add-button" aria-hidden="true">+</span>
                             </div>
                         </div>
-                    </article>
+                    </a>
                 {% endfor %}
             </div>
         {% else %}

@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.product_name }}{% endblock %}
+
+{% block content %}
+<div class="store-page detail-page">
+    <a class="back-link" href="{% url 'products:home' %}">← Back to shop</a>
+
+    <section class="product-detail-layout">
+        <div class="detail-gallery">
+            {% with main_image=product.images.first %}
+                {% if main_image %}
+                    <img class="detail-main-image" src="{{ main_image.image.url }}" alt="{{ product.product_name }}">
+                {% else %}
+                    <div class="detail-image-placeholder"><span>✦</span></div>
+                {% endif %}
+            {% endwith %}
+            <span class="detail-category">{{ product.product_category.category_name }}</span>
+        </div>
+
+        <div class="detail-copy">
+            <p class="eyebrow">{{ product.product_category.category_name }}</p>
+            <h1>{{ product.product_name }}</h1>
+            <p class="detail-price">${{ product.price }}</p>
+            <p class="detail-description">{{ product.description }}</p>
+
+            {% if variants %}
+                <form method="post" action="{% url 'cart:add' %}" class="add-to-cart-form">
+                    {% csrf_token %}
+                    <label for="variant-select">Choose an option</label>
+                    <select id="variant-select" name="variant_id" required>
+                        {% for variant in variants %}
+                            <option value="{{ variant.id }}">{{ variant.color }} — {{ variant.stock }} available</option>
+                        {% endfor %}
+                    </select>
+
+                    <div class="quantity-row">
+                        <label for="quantity">Quantity</label>
+                        <input id="quantity" type="number" name="quantity" min="1" value="1">
+                    </div>
+                    <button class="detail-add-button" type="submit">Add to cart <span>→</span></button>
+                </form>
+            {% else %}
+                <div class="detail-unavailable">
+                    This product is currently unavailable. Please check back soon.
+                </div>
+            {% endif %}
+
+            <div class="detail-notes">
+                <div><span>✓</span> Secure checkout</div>
+                <div><span>✓</span> Quality checked</div>
+                <div><span>✓</span> Easy returns</div>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}

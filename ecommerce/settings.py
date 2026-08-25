@@ -10,10 +10,43 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+def _load_env_file(env_path):
+    """Load simple KEY=VALUE settings without overwriting real environment variables."""
+    if not env_path.is_file():
+        return
+
+    for raw_line in env_path.read_text().splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip().strip("'\"")
+        if not key:
+            continue
+
+        # The existing local .env has its secret Stripe value mislabeled as a
+        # second STRIPE_PUBLIC_KEY entry. Keep that file usable while honoring
+        # correctly named environment variables when they are provided.
+        if key == "STRIPE_PUBLIC_KEY" and value.startswith("sk_"):
+            os.environ.setdefault("STRIPE_SECRET_KEY", value)
+            continue
+
+        os.environ.setdefault(key, value)
+
+
+_load_env_file(BASE_DIR / ".env")
+
+STRIPE_PUBLIC_KEY = os.environ.get("STRIPE_PUBLIC_KEY", "")
+STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", "")
 
 
 # Quick-start development settings - unsuitable for production
@@ -25,7 +58,10 @@ SECRET_KEY = 'django-insecure-3bp5jo05r7hrz%!laqsel6@ho(qc6-(sp2!top1o=pb@_!!+i0
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
+
+# Allow the HTTPS ngrok URL to submit Django forms during local development.
+CSRF_TRUSTED_ORIGINS = ["https://*.ngrok-free.dev"]
 
 
 # Application definition
@@ -39,6 +75,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'accounts',
     'products',
+    'cart',
 ]
 
 MIDDLEWARE = [

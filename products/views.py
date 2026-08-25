@@ -2,7 +2,7 @@ from decimal import Decimal, InvalidOperation
 from urllib.parse import urlencode
 
 from django.db.models import Q
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 
 from .models import Product, ProductCategory
 
@@ -54,5 +54,21 @@ def home(request):
                     if value
                 }
             ),
+        },
+    )
+
+
+def product_detail(request, slug):
+    product = get_object_or_404(
+        Product.objects.prefetch_related("images", "variants"),
+        slug=slug,
+    )
+    variants = [variant for variant in product.variants.all() if variant.stock > 0]
+    return render(
+        request,
+        "products/detail.html",
+        {
+            "product": product,
+            "variants": variants,
         },
     )

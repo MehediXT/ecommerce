@@ -6,7 +6,7 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.utils.text import slugify
 
-from products.models import Product, ProductCategory, ProductImage
+from products.models import Product, ProductCategory, ProductImage, ProductVariant
 
 
 CATEGORIES = {
@@ -132,6 +132,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         product_count = 0
         image_count = 0
+        variant_count = 0
 
         for category_name, products in CATEGORIES.items():
             category_slug = slugify(category_name)
@@ -173,6 +174,19 @@ class Command(BaseCommand):
                             )
                         )
 
+                product_image = ProductImage.objects.filter(product=product).first()
+                if product_image:
+                    _, variant_created = ProductVariant.objects.get_or_create(
+                        product=product,
+                        color="Default",
+                        defaults={
+                            "image": product_image.image.name,
+                            "stock": 100,
+                        },
+                    )
+                    if variant_created:
+                        variant_count += 1
+
             self.stdout.write(
                 self.style.SUCCESS(
                     f"{category_name}: {len(products)} sample products ready"
@@ -182,7 +196,8 @@ class Command(BaseCommand):
         self.stdout.write(
             self.style.SUCCESS(
                 f"Seed complete: {len(CATEGORIES)} categories and "
-                f"{product_count} products ready; {image_count} images added."
+                f"{product_count} products, {image_count} images, and "
+                f"{variant_count} variants ready."
             )
         )
 
