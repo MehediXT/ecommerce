@@ -1,13 +1,22 @@
 {% extends "base.html" %}
 
-{% block title %}Payment successful{% endblock %}
+{% block title %}Checkout status{% endblock %}
 
 {% block content %}
 <div class="store-page">
     <div class="empty-state">
+        {% if payment_confirmed %}
         <span class="empty-icon">✓</span>
         <h1>Thanks for your order</h1>
-        <p>Your payment was completed successfully.</p>
+        {% if order_created %}
+        <p>Your payment was completed successfully and your order was saved.</p>
+        {% else %}
+        <p>Your payment was completed successfully. Your order is still being processed.</p>
+        {% endif %}
+        {% else %}
+        <h1>Your payment is processing</h1>
+        <p>Payment has not been confirmed yet. Please check back shortly.</p>
+        {% endif %}
         <a class="nav-button nav-button-solid" href="{% url 'products:home' %}">Continue shopping</a>
     </div>
 </div>

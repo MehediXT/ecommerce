@@ -16,7 +16,7 @@ A Django storefront for browsing a product catalog, filtering products, managing
 
 ## Project status
 
-Stripe Checkout is connected, but the application does not yet persist orders, decrement inventory after payment, or process Stripe webhook events. The webhook endpoint currently acknowledges POST requests only. Wishlist and review functionality has not been implemented.
+Stripe Checkout creates paid orders and order items through a signed `payment_intent.succeeded` webhook. Orders are available in Django admin. Inventory deduction, cart clearing, wishlist, and review functionality have not been implemented.
 
 ## Tech stack
 
@@ -60,6 +60,8 @@ For Stripe Checkout, create a local `.env` file in the project root or export th
 ```text
 STRIPE_PUBLIC_KEY=pk_test_...
 STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+STRIPE_SHIPPING_COUNTRIES=BD,US,GB,CA,AU
 ```
 
 Keep secret keys out of version control. Checkout requires `STRIPE_SECRET_KEY`; product records also need a Stripe Price ID before they can be purchased online.
@@ -122,7 +124,11 @@ Register the generated public URL in Stripe with this path:
 https://<your-ngrok-host>/cart/webhook/
 ```
 
-The endpoint currently returns `{"received": true}` and does not verify or process Stripe events yet.
+Subscribe the endpoint to `payment_intent.succeeded` (with an underscore) and `checkout.session.completed`, copy its signing secret into `STRIPE_WEBHOOK_SECRET`, and restart Django. `STRIPE_SHIPPING_COUNTRIES` controls which destinations Checkout offers.
+
+Checkout attaches the stable account ID, account email, and a snapshot of product IDs, quantities, and Stripe unit prices to PaymentIntent metadata, and collects a shipping address. The webhook resolves the account by ID (with email lookup for older schema-1 sessions), creates a customer profile if necessary, and saves the address, paid order, and items in one transaction. A unique PaymentIntent ID prevents duplicate orders on retries. Missing users, ambiguous legacy emails, unsupported metadata schemas, incomplete data, and mismatched totals are rejected without partial writes. Existing checkout sessions created before this integration lack the required metadata; start a new checkout to test it.
+
+Each checkout supports up to 40 cart rows with fixed, one-time Stripe prices in a single currency. The webhook uses the payment snapshot, so later cart or catalog changes do not alter purchased items. An order address is saved separately from editable profile addresses. Adaptive Pricing is disabled so the paid currency and amount match the snapshot. The return page verifies the Checkout Session belongs to the signed-in account and creates the order immediately for a paid session. The webhook handlers are idempotent backups, so a refresh or duplicate Stripe delivery cannot create a second order. Failed webhook deliveries can be retried from Stripe after correcting their underlying cause.
 
 ## Useful commands
 
@@ -141,9 +147,12 @@ ecommerce/
 ├── accounts/       # Registration, authentication, profiles, and addresses
 ├── products/       # Catalog models, storefront, admin, and seed command
 ├── cart/           # Cart models, checkout, webhook endpoint, and admin
+├── orders/         # Orders, purchased items, and payment-event processing
 ├── templates/      # Shared and page templates
 ├── media/          # Uploaded and seeded product images (local only)
 ├── ecommerce/      # Project settings, WSGI/ASGI, and root URLs
 ├── requerment.txt  # Pinned Python dependencies
 └── manage.py       # Django command-line entry point
 ```
+
+Run the regression suite with `python manage.py test --noinput`. It requires the configured local PostgreSQL server and permission to create a test database. Stripe calls are mocked; webhook tests verify signed payloads without contacting Stripe.

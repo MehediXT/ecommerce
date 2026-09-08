@@ -47,6 +47,13 @@ _load_env_file(BASE_DIR / ".env")
 
 STRIPE_PUBLIC_KEY = os.environ.get("STRIPE_PUBLIC_KEY", "")
 STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", "")
+STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
+# Countries served by the store; Stripe Checkout collects the shipping address.
+STRIPE_SHIPPING_COUNTRIES = [
+    country.strip().upper()
+    for country in os.environ.get("STRIPE_SHIPPING_COUNTRIES", "BD,US,GB,CA,AU").split(",")
+    if country.strip()
+]
 
 
 # Quick-start development settings - unsuitable for production
@@ -76,6 +83,7 @@ INSTALLED_APPS = [
     'accounts',
     'products',
     'cart',
+    'orders',
 ]
 
 MIDDLEWARE = [
